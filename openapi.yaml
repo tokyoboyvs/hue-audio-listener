@@ -1,0 +1,649 @@
+openapi: 3.1.0
+info:
+  title: Hue Local API
+  version: 0.1.0
+  description: >
+    OpenAPI description of the currently implemented HTTP contract exposed by
+    hue-local-api. This spec stays close to the code and intentionally avoids
+    inventing routes that do not exist.
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local default
+  - url: http://localhost:8000
+    description: Localhost alias
+tags:
+  - name: health
+  - name: lights
+  - name: rooms
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health check
+      description: Public endpoint. Does not require X-API-Key.
+      operationId: getHealth
+      responses:
+        "200":
+          description: Health response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              examples:
+                default:
+                  value:
+                    status: ok
+                    app: hue-local-api
+                    version: 0.1.0
+                    mode: mock
+
+  /api/lights:
+    get:
+      tags: [lights]
+      summary: List lights
+      operationId: getLights
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: List of lights
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightsListResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/bridge/status:
+    get:
+      tags: [lights]
+      summary: Get Hue bridge status
+      operationId: getBridgeStatus
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Bridge status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BridgeStatusResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/actions/on:
+    post:
+      tags: [lights]
+      summary: Bulk turn on lights
+      description: >
+        Implemented and test-covered in mock mode. Current real Hue client does
+        not yet implement real bulk behavior and returns empty arrays.
+      operationId: bulkTurnOnLights
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkLightActionRequest"
+      responses:
+        "200":
+          description: Bulk action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkLightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/lights/actions/off:
+    post:
+      tags: [lights]
+      summary: Bulk turn off lights
+      description: >
+        Implemented and test-covered in mock mode. Current real Hue client does
+        not yet implement real bulk behavior and returns empty arrays.
+      operationId: bulkTurnOffLights
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkLightActionRequest"
+      responses:
+        "200":
+          description: Bulk action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkLightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/lights/actions/toggle:
+    post:
+      tags: [lights]
+      summary: Bulk toggle lights
+      description: >
+        Implemented and test-covered in mock mode. Current real Hue client does
+        not yet implement real bulk behavior and returns empty arrays.
+      operationId: bulkToggleLights
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkLightActionRequest"
+      responses:
+        "200":
+          description: Bulk action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkLightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/lights/{light_id}:
+    get:
+      tags: [lights]
+      summary: Get one light
+      operationId: getLight
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/LightId"
+      responses:
+        "200":
+          description: Light details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightDetailsResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/{light_id}/on:
+    post:
+      tags: [lights]
+      summary: Turn one light on
+      operationId: turnOnLight
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/LightId"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/{light_id}/off:
+    post:
+      tags: [lights]
+      summary: Turn one light off
+      operationId: turnOffLight
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/LightId"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/{light_id}/toggle:
+    post:
+      tags: [lights]
+      summary: Toggle one light
+      operationId: toggleLight
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/LightId"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/{light_id}/brightness:
+    post:
+      tags: [lights]
+      summary: Set brightness for one light
+      operationId: setLightBrightness
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/LightId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrightnessUpdateRequest"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/lights/{light_id}/color:
+    post:
+      tags: [lights]
+      summary: Set color for one light
+      operationId: setLightColor
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/LightId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ColorUpdateRequest"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightActionResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/rooms:
+    get:
+      tags: [rooms]
+      summary: List rooms
+      operationId: getRooms
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: List of rooms
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomsListResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+  /api/rooms/{room_name}/lights:
+    get:
+      tags: [rooms]
+      summary: List lights in one room
+      description: >
+        Returns 404 when no light is found for the room. Current implementation
+        does not distinguish between an unknown room and an empty room.
+      operationId: getRoomLights
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomName"
+      responses:
+        "200":
+          description: List of lights in the room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LightsListResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    LightId:
+      name: light_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Hue-local-api light identifier
+    RoomName:
+      name: room_name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Room name as known by the API
+
+  responses:
+    UnauthorizedError:
+      description: Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missingOrInvalidKey:
+              value:
+                detail: Invalid or missing API key
+    InternalError:
+      description: Server-side configuration or Hue bridge error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            apiKeyMissing:
+              value:
+                detail: API key is not configured
+            bridgeNotConfigured:
+              value:
+                detail: Hue Bridge is not configured
+    BadGatewayError:
+      description: Hue bridge unreachable or authentication failure
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            bridgeAuthFailed:
+              value:
+                detail: Hue Bridge authentication failed
+            bridgeUnreachable:
+              value:
+                detail: Hue Bridge is unreachable
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            lightNotFound:
+              value:
+                detail: Light 'light-1' not found
+            roomNotFound:
+              value:
+                detail: Room 'office' not found
+            hueResourceNotFound:
+              value:
+                detail: Hue resource not found
+    ValidationError:
+      description: Request body validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HTTPValidationError"
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, app, version, mode]
+      properties:
+        status:
+          type: string
+          examples: [ok]
+        app:
+          type: string
+          examples: [hue-local-api]
+        version:
+          type: string
+          examples: [0.1.0]
+        mode:
+          type: string
+          examples: [mock, real]
+
+    Light:
+      type: object
+      required: [id, name, room, is_on, brightness, color]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        room:
+          type: string
+        is_on:
+          type: boolean
+        brightness:
+          type: integer
+          minimum: 0
+          maximum: 100
+        color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+
+    LightsListResponse:
+      type: object
+      required: [mode, items]
+      properties:
+        mode:
+          type: string
+          examples: [mock, real]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Light"
+
+    LightDetailsResponse:
+      type: object
+      required: [mode, item]
+      properties:
+        mode:
+          type: string
+          examples: [mock, real]
+        item:
+          $ref: "#/components/schemas/Light"
+
+    LightActionResponse:
+      type: object
+      required: [success, message, light]
+      properties:
+        success:
+          type: boolean
+          examples: [true]
+        message:
+          type: string
+        light:
+          $ref: "#/components/schemas/Light"
+
+    BrightnessUpdateRequest:
+      type: object
+      required: [brightness]
+      properties:
+        brightness:
+          type: integer
+          minimum: 0
+          maximum: 100
+
+    ColorUpdateRequest:
+      type: object
+      required: [color]
+      properties:
+        color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+
+    Room:
+      type: object
+      required: [name, light_count]
+      properties:
+        name:
+          type: string
+        light_count:
+          type: integer
+
+    RoomsListResponse:
+      type: object
+      required: [mode, items]
+      properties:
+        mode:
+          type: string
+          examples: [mock, real]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Room"
+
+    BridgeStatusResponse:
+      type: object
+      required: [mode, bridge_configured, bridge_reachable]
+      properties:
+        mode:
+          type: string
+          examples: [mock, real]
+        bridge_configured:
+          type: boolean
+        bridge_reachable:
+          type: boolean
+
+    BulkLightActionRequest:
+      type: object
+      required: [light_ids]
+      properties:
+        light_ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+
+    BulkLightActionResponse:
+      type: object
+      required: [success, message, updated_lights, missing_light_ids]
+      properties:
+        success:
+          type: boolean
+          examples: [true]
+        message:
+          type: string
+        updated_lights:
+          type: array
+          items:
+            $ref: "#/components/schemas/Light"
+        missing_light_ids:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ValidationError"
+
+    ValidationError:
+      type: object
+      required: [loc, msg, type]
+      properties:
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        type:
+          type: string
+
+    HTTPValidationError:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationError"

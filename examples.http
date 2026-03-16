@@ -1,0 +1,119 @@
+@baseUrl = http://127.0.0.1:8000
+@apiKey = dev-key
+@lightId = light-1
+@roomName = office
+
+### Health check (public)
+GET {{baseUrl}}/health
+Accept: application/json
+
+### List all lights
+GET {{baseUrl}}/api/lights
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Get bridge status
+GET {{baseUrl}}/api/lights/bridge/status
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Get one light by ID
+GET {{baseUrl}}/api/lights/{{lightId}}
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Toggle one light
+POST {{baseUrl}}/api/lights/{{lightId}}/toggle
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Turn one light on
+POST {{baseUrl}}/api/lights/{{lightId}}/on
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Turn one light off
+POST {{baseUrl}}/api/lights/{{lightId}}/off
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Set brightness to 50%
+POST {{baseUrl}}/api/lights/{{lightId}}/brightness
+Accept: application/json
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "brightness": 50
+}
+
+### Set color to red
+POST {{baseUrl}}/api/lights/{{lightId}}/color
+Accept: application/json
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "color": "#FF0000"
+}
+
+### List rooms
+GET {{baseUrl}}/api/rooms
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### List lights in one room
+GET {{baseUrl}}/api/rooms/{{roomName}}/lights
+Accept: application/json
+X-API-Key: {{apiKey}}
+
+### Bulk turn on lights
+POST {{baseUrl}}/api/lights/actions/on
+Accept: application/json
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "light_ids": ["light-1", "light-2"]
+}
+
+### Bulk turn off lights
+POST {{baseUrl}}/api/lights/actions/off
+Accept: application/json
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "light_ids": ["light-1", "light-2"]
+}
+
+### Bulk toggle lights
+POST {{baseUrl}}/api/lights/actions/toggle
+Accept: application/json
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "light_ids": ["light-1", "light-2"]
+}
+
+### Invalid brightness example (should return 422)
+POST {{baseUrl}}/api/lights/{{lightId}}/brightness
+Accept: application/json
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "brightness": 101
+}
+
+### Invalid or missing API key example (should return 401)
+GET {{baseUrl}}/api/lights
+Accept: application/json
+X-API-Key: wrong-key
+
+### Notes
+# 1. Single-light toggle is the safest current endpoint for clap control.
+# 2. Brightness expects 0..100.
+# 3. Color expects a #RRGGBB hex string.
+# 4. Bulk routes are currently reliable in mock mode, but not in real bridge mode yet.
