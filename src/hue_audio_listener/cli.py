@@ -3,6 +3,7 @@ from __future__ import annotations
 from hue_audio_listener.api_client import HueApiClient
 from hue_audio_listener.config import load_settings
 import argparse
+import httpx
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -26,18 +27,35 @@ def main() -> int:
         api_key=settings.api_key,
     )
 
-    if args.command == "health":
-        result = client.get_health()
-        print(result)
-        return 0
+    try: 
+        if args.command == "health":
+            result = client.get_health()
+            print(result)
+            return 0
+        
+        if args.command == "toggle":
+            light_id = args.light_id or settings.target_light_id
+            if not light_id:
+                print("Error: light id is required via --light-id or HUE_TARGET_LIGHT_ID")
+                return 2
+            
+            result = client.toggle_light(light_id)
+            print(result)
+            return 0
+        
+        print("Error: unknown command")
+        return 2
     
-    if args.command == "toggle":
-        light_id = args.light_id or settings.target_light_id
-        if not light_id:
-            parser.error("light id is required via --light-id or HUE_TARGET_LIGHT_ID")
-        result = client.toggle_light(light_id)
-        print(result)
-        return 0
+    except httpx.HTTPStatusError as exc:
+        status_code = exc.response.status_code
+
+        if status_code == 401:
+            print("Error: unauthorized. Check HUE_API_KEY.")
+            return 1
+        
+        print(f"Error: API request failed with status {status_code}.")
+        return 1
     
-    parser.error("unknown command")
-    return 1
+    except httpx.HTTPError as exc:
+        print(f"Error: request failed: {exc}")
+        return 1
