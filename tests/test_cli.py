@@ -126,3 +126,27 @@ def test_main_toggle_returns_clear_message_for_401(monkeypatch, capsys):
     assert exit_code == 1
     assert "Check HUE_API_KEY" in output
 
+def test_main_simulate_claps_reports_detected_double_claps(monkeypatch, capsys):
+    monkeypatch.setattr(
+        cli,
+        "load_settings",
+        lambda: type(
+            "Settings",
+            (),
+            {
+                "api_base_url": "http://127.0.0.1:8000",
+                "api_key": "test-key",
+                "target_light_id": "",
+                "clap_window_seconds": 3.0,
+                "clap_cooldown_seconds": 5.0,
+            },
+        )(),
+    )
+    monkeypatch.setattr(sys, "argv", ["hue-audio-listener", "simulate-claps", "1.0", "1.4", "7.0", "7.3"])
+
+    exit_code = cli.main()
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "1.4" in output
+    assert "7.3" in output
